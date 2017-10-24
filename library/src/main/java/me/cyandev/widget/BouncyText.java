@@ -28,11 +28,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 import android.support.annotation.StringRes;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -44,6 +42,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
+
+import me.cyandev.R;
 
 /**
  * A user interface element that displays text to user and performs a character-unit animated
@@ -114,26 +114,32 @@ public class BouncyText extends View {
     }
 
     public BouncyText(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        this(context, attrs, defStyleAttr, R.style.Base_Widget_BouncyText);
+    }
+
+    public BouncyText(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr);
 
-        final TypedArray a = context.obtainStyledAttributes(new int[] {
-                android.R.attr.textColorPrimary
-        });
-
         final Resources res = getResources();
+        final Resources.Theme theme = context.getTheme();
+
+        final TypedArray a = theme.obtainStyledAttributes(attrs, R.styleable.BouncyText, 0,
+                defStyleRes);
 
         mTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         mTextPaint.density = res.getDisplayMetrics().density;
 
-        setTextSize(15);
-        setTextColor(a.getColor(0, Color.BLACK));
+        setTextSize(a.getDimensionPixelSize(R.styleable.BouncyText_textSize, 15));
+        setTextColor(a.getColor(R.styleable.BouncyText_textColor, Color.BLACK));
+        setText(a.getString(R.styleable.BouncyText_text));
+        mAnimationDuration =
+                a.getInteger(R.styleable.BouncyText_animationDuration, mAnimationDuration);
+        mAnimationStagger =
+                a.getInteger(R.styleable.BouncyText_animationStagger, mAnimationStagger);
+        mAnimationDirection =
+                a.getInt(R.styleable.BouncyText_animationDirection, mAnimationDirection);
 
         a.recycle();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public BouncyText(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        this(context, attrs, defStyleAttr);
     }
 
     /**
@@ -193,6 +199,8 @@ public class BouncyText extends View {
      * @param text the string
      */
     public void setText(CharSequence text) {
+        text = text == null ? "" : text;
+
         if (mText != null && mText.equals(text)) {
             return;
         }
