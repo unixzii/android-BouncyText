@@ -16,5 +16,7 @@
   -->
 
 <resources>
-
+    <style name="Base.Widget.BouncyText" parent="android:Widget">
+        <item name="textColor">?android:textColorPrimary</item>
+    </style>
 </resources>

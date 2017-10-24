@@ -339,6 +339,7 @@ public class BouncyText extends View {
 
         boolean shorter = newInfos.size() < mPrimaryInfos.size();
 
+        // TODO: We need a better diff algorithm, right?
         // Transit all different characters.
         for (i = mPrimaryInfos.size() - 1, j = newInfos.size() - 1; i >= 0 && j >= 0; i--, j--) {
             // True if the new info can be replaced by the old info, thus we can recycle
