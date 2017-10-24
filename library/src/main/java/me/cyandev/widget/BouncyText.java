@@ -40,12 +40,14 @@ import android.util.Property;
 import android.util.TypedValue;
 import android.view.View;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * A user interface element that displays text to user and performs a character-unit animated
- * transition when its content changed.
+ * transition when its content changed. This is usually used for displaying changing numeral texts.
  */
 public class BouncyText extends View {
 
@@ -59,12 +61,13 @@ public class BouncyText extends View {
     public final static int DIRECTION_DOWNWARD = -1;
 
     @IntDef({ DIRECTION_UPWARD, DIRECTION_DOWNWARD })
+    @Retention(RetentionPolicy.SOURCE)
     @interface AnimationDirection {}
 
     private TextPaint mTextPaint;
     private Paint.FontMetrics mFontMetrics;
 
-    private CharSequence mText;
+    private CharSequence mText = "";
 
     private List<CharacterInfo> mPrimaryInfos = new ArrayList<>();
     private List<CharacterInfo> mTransientInfos = new ArrayList<>();
@@ -113,7 +116,7 @@ public class BouncyText extends View {
     public BouncyText(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        TypedArray a = context.obtainStyledAttributes(new int[] {
+        final TypedArray a = context.obtainStyledAttributes(new int[] {
                 android.R.attr.textColorPrimary
         });
 
@@ -122,7 +125,7 @@ public class BouncyText extends View {
         mTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         mTextPaint.density = res.getDisplayMetrics().density;
 
-
+        setTextSize(15);
         setTextColor(a.getColor(0, Color.BLACK));
 
         a.recycle();
@@ -254,31 +257,12 @@ public class BouncyText extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-
-        int width;
-        int height;
-
         ensureBoundsRect();
+        final int suggestedWidth = (int) mBounds.width();
+        final int suggestedHeight = (int) mBounds.height();
 
-        if (widthMode == MeasureSpec.EXACTLY) {
-            width = widthSize;
-        } else {
-            width = Math.min((int) mBounds.width(),
-                    widthMode == MeasureSpec.AT_MOST ? widthSize : Integer.MAX_VALUE);
-        }
-
-        if (heightMode == MeasureSpec.EXACTLY) {
-            height = heightSize;
-        } else {
-            height = Math.min((int) mBounds.height(),
-                    heightMode == MeasureSpec.AT_MOST ? heightSize : Integer.MAX_VALUE);
-        }
-
-        setMeasuredDimension(width, height);
+        setMeasuredDimension(resolveSize(suggestedWidth, widthMeasureSpec),
+                resolveSize(suggestedHeight, heightMeasureSpec));
     }
 
     @Override
@@ -290,7 +274,7 @@ public class BouncyText extends View {
         final float yAdjust = (getHeight() + mFontMetrics.ascent - mFontMetrics.descent) / 2.f
                 - mFontMetrics.ascent;
 
-        int gState = canvas.save();
+        final int gState = canvas.save();
         canvas.translate(0, yAdjust);
 
         drawInfoList(canvas, mPrimaryInfos);
@@ -357,13 +341,13 @@ public class BouncyText extends View {
                 // Animate out
                 CharacterInfo info = mPrimaryInfos.get(i);
                 mTransientInfos.add(info);
-                makeMoveAnimator(info, CharacterInfo.Y, false, -height * directionFactor,
+                createAndStartAnimator(info, CharacterInfo.Y, false, -height * directionFactor,
                         totalDelay);
 
                 // Animate in
                 info = newInfos.get(j);
                 mPrimaryInfos.set(i, info);
-                makeMoveAnimator(info, CharacterInfo.Y, true, height * directionFactor,
+                createAndStartAnimator(info, CharacterInfo.Y, true, height * directionFactor,
                         totalDelay);
             } else {
                 removeMark = true;
@@ -372,7 +356,7 @@ public class BouncyText extends View {
             if (mPrimaryInfos.get(i).x != newInfos.get(j).x) {
                 CharacterInfo oldInfo = mPrimaryInfos.get(i);
                 CharacterInfo newInfo = newInfos.get(j);
-                makeMoveAnimator(oldInfo, CharacterInfo.X, false, newInfo.x - oldInfo.x,
+                createAndStartAnimator(oldInfo, CharacterInfo.X, false, newInfo.x - oldInfo.x,
                         totalDelay);
             }
 
@@ -391,7 +375,7 @@ public class BouncyText extends View {
             for (; i >= 0; i--) {
                 CharacterInfo info = mPrimaryInfos.remove(i);
                 mTransientInfos.add(info);
-                makeMoveAnimator(info, CharacterInfo.Y, false, -height * directionFactor,
+                createAndStartAnimator(info, CharacterInfo.Y, false, -height * directionFactor,
                         totalDelay);
             }
 
@@ -405,7 +389,7 @@ public class BouncyText extends View {
             for (; j >= 0; j--) {
                 CharacterInfo info = newInfos.get(j);
                 mPrimaryInfos.add(0, info);
-                makeMoveAnimator(info, CharacterInfo.Y, true, height * directionFactor,
+                createAndStartAnimator(info, CharacterInfo.Y, true, height * directionFactor,
                         totalDelay);
 
                 totalDelay += mAnimationStagger;
@@ -431,10 +415,9 @@ public class BouncyText extends View {
      * @param in whether to initiate a transition-in animation
      * @param delta the delta for start/end state
      * @param delay the delay of animation
-     * @return the created animator
      */
-    private Animator makeMoveAnimator(CharacterInfo info, Property<CharacterInfo, Float> prop,
-                                      boolean in, float delta, int delay) {
+    private void createAndStartAnimator(CharacterInfo info, Property<CharacterInfo, Float> prop,
+                                            boolean in, float delta, int delay) {
         final float startValue;
         final float endValue;
         if (in) {
@@ -460,17 +443,15 @@ public class BouncyText extends View {
         mActiveAnimators.add(animator);
         animator.start();
         mRunningAnimatorCount++;
-
-        return animator;
     }
 
     private List<CharacterInfo> generateInfos(String text) {
         List<CharacterInfo> infos = new ArrayList<>();
-        char[] chars = text.toCharArray();
+        final char[] chars = text.toCharArray();
 
         float x = 0;
 
-        float[] widths = new float[text.length()];
+        final float[] widths = new float[text.length()];
         mTextPaint.getTextWidths(text, widths);
 
         for (int i = 0; i < chars.length; i++) {
@@ -500,7 +481,8 @@ public class BouncyText extends View {
      *
      * Note that the y coordinate stands for the "baseline" of a glyph, for
      * more information see
-     * {@see <a href="https://developer.android.com/reference/android/graphics/Paint.FontMetrics.html">Paint.FontMetrics</a>}.
+     * {@see <a href="https://developer.android.com/reference/android/graphics/Paint.FontMetrics.html">
+     * Paint.FontMetrics</a>}.
      */
     private static class CharacterInfo {
         char ch;
