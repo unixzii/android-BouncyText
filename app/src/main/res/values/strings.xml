@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">BouncyText</string>
+    <string name="app_name">BouncyText Demo</string>
+    <string name="set_text">Set Text</string>
+    <string name="set_text_message">This will immediately set the widget\'s text without animations, in this demo, you will only be able to input numbers.</string>
+    <string name="done">Done</string>
+    <string name="cancel">Cancel</string>
+    <string name="direction_label">Direction:</string>
+    <string name="direction_upwards_label">Upwards</string>
+    <string name="direction_downwards_label">Downwards</string>
+    <string name="decrease_sign">-</string>
+    <string name="increase_sign">+</string>
+    <string name="stagger_label">Stagger:</string>
+    <string name="duration_label">Duration:</string>
 </resources>
