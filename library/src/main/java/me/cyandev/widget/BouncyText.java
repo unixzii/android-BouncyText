@@ -145,6 +145,7 @@ public class BouncyText extends View {
 
     /**
      * Sets the text size to given value, interpreted as "scaled pixel" units.
+     *
      * @param sp the scaled pixel size
      */
     public void setTextSize(int sp) {
@@ -153,6 +154,7 @@ public class BouncyText extends View {
 
     /**
      * Sets the text size to given size, using given unit.
+     *
      * @param unit the unit defined in {@link TypedValue}
      * @param size the size
      */
@@ -179,6 +181,7 @@ public class BouncyText extends View {
 
     /**
      * Sets the text color to given color.
+     *
      * @param color the color
      */
     public void setTextColor(int color) {
@@ -188,7 +191,9 @@ public class BouncyText extends View {
 
     /**
      * Sets the text to be displayed using a string resource identifier.
-     * See also: {@link BouncyText#setText(CharSequence)}
+     *
+     * See also {@link #setText(CharSequence)}.
+     *
      * @param resid the resource id
      */
     public void setText(@StringRes int resid) {
@@ -197,6 +202,7 @@ public class BouncyText extends View {
 
     /**
      * Sets the text to be displayed using a string, this will cause a flip fashion transition.
+     *
      * @param text the string
      */
     public void setText(CharSequence text) {
@@ -252,6 +258,7 @@ public class BouncyText extends View {
     /**
      * Sets the animation duration for single characters, the total duration will be this
      * duration multiplies the count of characters changed.
+     *
      * @param animationDuration the duration in milliseconds
      */
     public void setAnimationDuration(int animationDuration) {
@@ -268,6 +275,7 @@ public class BouncyText extends View {
     /**
      * Sets the stagger duration of animations, that is the interval between two character
      * animations.
+     *
      * @param stagger the duration in milliseconds
      */
     public void setAnimationStagger(int stagger) {
@@ -283,6 +291,7 @@ public class BouncyText extends View {
 
     /**
      * Sets the movement direction of animations to perform when text changed.
+     *
      * @param direction see {@link BouncyText#DIRECTION_UPWARD},
      *                      {@link BouncyText#DIRECTION_DOWNWARD}
      */
@@ -296,6 +305,8 @@ public class BouncyText extends View {
 
     /**
      * Returns the current animation direction.
+     *
+     * See also {@link #setAnimationDirection(int)}.
      */
     public int getAnimationDirection() {
         return mAnimationDirection;
