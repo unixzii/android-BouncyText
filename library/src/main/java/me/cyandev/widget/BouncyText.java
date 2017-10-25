@@ -54,11 +54,11 @@ public class BouncyText extends View {
     /**
      * Characters fly from the bottom to the top.
      */
-    public final static int DIRECTION_UPWARD = 1;
+    public static final int DIRECTION_UPWARD = 1;
     /**
      * Characters fall from the top to the bottom.
      */
-    public final static int DIRECTION_DOWNWARD = -1;
+    public static final int DIRECTION_DOWNWARD = -1;
 
     @IntDef({ DIRECTION_UPWARD, DIRECTION_DOWNWARD })
     @Retention(RetentionPolicy.SOURCE)
@@ -78,6 +78,7 @@ public class BouncyText extends View {
     private int mAnimationDirection = DIRECTION_UPWARD;
     private int mRunningAnimatorCount = 0;
     private boolean mEndingAnimators = false;
+    private boolean mAnimationsSuppressed = false;
     private List<Animator> mActiveAnimators = new ArrayList<>();
 
     /** Prepared for measurements to avoid frequent allocation. */
@@ -210,26 +211,42 @@ public class BouncyText extends View {
         endAnimators();
         String textStr = text.toString();
         List<CharacterInfo> newInfos = generateInfos(textStr);
-        do {
-            if (mPrimaryInfos.size() == 0) {
-                // Directly swap the list.
-                mPrimaryInfos = newInfos;
-                break;
+        if (mAnimationsSuppressed || newInfos.size() == 0) {
+            for (CharacterInfo info : mPrimaryInfos) {
+                mInfoPool.release(info);
             }
-
-            if (newInfos.size() == 0) {
-                // Directly recycle all infos in list.
-                for (CharacterInfo info : mPrimaryInfos) {
-                    mInfoPool.release(info);
-                }
-                mPrimaryInfos.clear();
-            }
-
+            mPrimaryInfos.clear();
+            mPrimaryInfos = newInfos;
+            mBounds = null;
+        } else if (mPrimaryInfos.size() == 0) {
+            // Directly swap the list.
+            mPrimaryInfos = newInfos;
+            mBounds = null;
+        } else {
             performTransitions(newInfos);
-        } while (false);
+        }
 
         requestLayout();
         invalidate();
+    }
+
+    /**
+     * Returns the text that BouncyText is displaying.
+     *
+     * <p>The content of the return value should not be modified. If you want a modifiable one, you
+     * should make your own copy first.</p>
+     *
+     * @return The text displayed by the view.
+     */
+    public CharSequence getText() {
+        return mText;
+    }
+
+    /**
+     * Sets whether to suppress(disable) the animations when text changed.
+     */
+    public void suppressAnimations(boolean suppress) {
+        mAnimationsSuppressed = suppress;
     }
 
     /**
@@ -242,12 +259,26 @@ public class BouncyText extends View {
     }
 
     /**
+     * Returns the current animation duration.
+     */
+    public int getAnimationDuration() {
+        return mAnimationDuration;
+    }
+
+    /**
      * Sets the stagger duration of animations, that is the interval between two character
      * animations.
      * @param stagger the duration in milliseconds
      */
     public void setAnimationStagger(int stagger) {
         mAnimationStagger = stagger;
+    }
+
+    /**
+     * Returns the current animation stagger.
+     */
+    public int getAnimationStagger() {
+        return mAnimationStagger;
     }
 
     /**
@@ -261,6 +292,13 @@ public class BouncyText extends View {
         }
 
         mAnimationDirection = direction;
+    }
+
+    /**
+     * Returns the current animation direction.
+     */
+    public int getAnimationDirection() {
+        return mAnimationDirection;
     }
 
     @Override
