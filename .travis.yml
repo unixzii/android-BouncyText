@@ -1,0 +1,20 @@
+language: android
+sudo: required
+dist: precise
+
+android:
+  components:
+    - tools
+    - platform-tools
+    - build-tools-26.0.2
+    - android-26
+    - extra-android-m2repository
+
+jdk:
+  - oraclejdk8
+
+notifications:
+  email: false
+
+script:
+  - ./gradlew assemble check
